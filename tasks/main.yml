@@ -1,2 +1,7 @@
 ---
 # tasks file for dhcpd
+
+- name: install packages
+  ansible.builtin.package:
+    name: "{{ dhcpd_packages }}"
+    state: present

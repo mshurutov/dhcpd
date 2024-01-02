@@ -1,2 +1,7 @@
 ---
 # defaults file for dhcpd
+# Any distro-dependent defaults are defined for Gentoo Linux
+# For other distro it should be redefined to correct value
+dhcpd_tenplates_dir: "{{ role_path }}/templates"
+dhcpd_vars_dir: "{{ role_path }}/vars"
+dhcpd_files_dir: "{{ role_path }}/files"

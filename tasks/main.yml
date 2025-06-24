@@ -1,17 +1,42 @@
 ---
+# tasks file for dhcpd
+# Check prerequisites
+# Ansible version
 - name: Check if ansible version is equal or greater than 2.11
   ansible.builtin.fail:
     msg: "Ansible core should be equal or greater than 2.11"
   when: ansible_version.full is ansible.builtin.version('2.11','<')
-
+# Python version
 - name: Check if python is equal or greater than 3
   ansible.builtin.fail:
     msg: "Python should be equal or greater than 3"
   when: ansible_python.version.major is ansible.builtin.version('3','<')
 
-# tasks file for dhcpd
-
 - name: Install packages
-  ansible.builtin.package:
-    name: "{{ dhcpd_packages }}"
-    state: present
+  block:
+    - name: Install packages on normal distro
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: "present"
+      loop: "{{ dhcpd_packages }}"
+    - name: Install packages on Alt Linux
+      community.general.apt_rpm:
+        name: "{{ item }}"
+        state: "present_not_latest"
+      loop: "{{ dhcpd_packages }}"
+
+- name: Check if config dir exist
+  ansible.builtin.file:
+    group: "{{ dhcpd_group | default('root') }}"
+    mode: "{{ dhcpd_config_dir_mode }}"
+    owner: "{{ dhcpd_owner | default('root') }}"
+    path: "{{ dhcpd_config_dir }}"
+    state: "directory"
+
+- name: Configure dhcpd
+  ansible.builtin.template module:
+    dest: "{{ dhcpd_config_dir }}/{{ dhcpd_config_file }}"
+    group: "{{ dhcpd_group | default('root') }}"
+    mode: "{{ dhcpd_config_file_mode }}"
+    owner: "{{ dhcpd_owner | default('root') }}"
+    src: "{{ dhcpd_templates_dir }}/{{ dhcpd_config_file }}.j2"
